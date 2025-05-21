@@ -81,8 +81,8 @@
 
 应用使用了以下AI服务：
 
-- 通义千问API: `sk-07ef4701031d41668beebb521e80eaf0`
-- DeepSeek API: `sk-0b2be14756fe4195a7bc2bcb78d19f8f`
+- 通义千问API: `sk-xxxxxxxxxx`
+- DeepSeek API: `sk-xxxxxxxxxx`
 
 **注意**：这些API密钥仅用于演示。对于实际部署，建议替换为您自己的API密钥。
 
@@ -97,7 +97,7 @@
 
 ## 联系与支持
 
-如有问题或建议，请联系：support@cheng-ren.com
+如有问题或建议，请联系：xieshuoxing.vip
 
 ---
 
