@@ -1,0 +1,47 @@
+{
+  "name": "cheng-ren",
+  "version": "1.7.0",
+  "description": "秤人 - 个人健康管理与分析系统",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "node build.js",
+    "build:portable": "node portable-build.js",
+    "create:portable": "node create-portable-package.js",
+    "dist:portable": "electron-builder --win portable --config.win.icon=24-cio.ico --config.productName=秤人 --config.artifactName=秤人健康系统-便携版-${version}.${ext}",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder",
+    "postinstall": "electron-builder install-app-deps",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "健康",
+    "AI",
+    "分析"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "antd": "latest",
+    "axios": "latest",
+    "electron-store": "^8.2.0",
+    "marked": "^15.0.11",
+    "react": "latest",
+    "react-dom": "latest"
+  },
+  "devDependencies": {
+    "electron": "^36.2.1",
+    "electron-builder": "latest"
+  },
+  "build": {
+    "appId": "com.cheng-ren.app",
+    "productName": "秤人",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "cheng-ren.ico"
+    }
+  }
+}

@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="zh-CN" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>秤人 - 个人健康管理与分析系统</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/antd/dist/antd.min.css">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <!-- 椭圆形拖拽区域 -->
+  <div id="ellipse-drag-handle" style="position: fixed; top: 6px; left: 50%; transform: translateX(-50%); width: 120px; height: 12px; background-color: rgba(60, 60, 60, 0.85); border-radius: 10px; z-index: 10000; cursor: grab; transition: all 0.15s ease; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4); -webkit-app-region: drag; app-region: drag;" title="点击并拖动移动窗口"></div>
+  
+  <div id="app">
+    <div class="app-container">
+      <header class="app-header">
+        <div class="logo-container">
+          <img src="assets/logo.png" alt="秤人" class="logo" onerror="this.style.display='none'">
+        </div>
+      </header>
+      
+      <div class="main-content">
+        <div class="form-section">
+          <h2>输入您的身体数据</h2>
+          <form id="healthForm">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="height">身高 (cm)</label>
+                <input type="number" id="height" name="height" class="form-control" required>
+              </div>
+              <div class="form-group">
+                <label for="weight">体重 (kg)</label>
+                <input type="number" id="weight" name="weight" step="0.1" class="form-control" required>
+              </div>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label for="age">年龄</label>
+                <input type="number" id="age" name="age" class="form-control" required>
+              </div>
+              <div class="form-group">
+                <label for="gender">性别</label>
+                <select id="gender" name="gender" class="form-control" required>
+                  <option value="">请选择</option>
+                  <option value="male">男</option>
+                  <option value="female">女</option>
+                  <option value="other">其他</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label for="bloodPressure">血压 (mmHg)</label>
+                <div class="blood-pressure-input">
+                  <input type="number" id="systolic" name="systolic" class="form-control" placeholder="收缩压" required>
+                  <span>/</span>
+                  <input type="number" id="diastolic" name="diastolic" class="form-control" placeholder="舒张压" required>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="heartRate">心率 (次/分)</label>
+                <input type="number" id="heartRate" name="heartRate" class="form-control" required>
+              </div>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label for="sleepHours">平均睡眠时长 (小时)</label>
+                <input type="number" id="sleepHours" name="sleepHours" step="0.5" class="form-control" required>
+              </div>
+              <div class="form-group">
+                <label for="exerciseFrequency">每周运动频率</label>
+                <select id="exerciseFrequency" name="exerciseFrequency" class="form-control" required>
+                  <option value="">请选择</option>
+                  <option value="0">不运动</option>
+                  <option value="1-2">1-2次</option>
+                  <option value="3-4">3-4次</option>
+                  <option value="5+">5次及以上</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="medical">病史 (可选)</label>
+              <textarea id="medical" name="medical" class="form-control" rows="3" placeholder="请描述您的病史、家族病史或当前正在用药情况等"></textarea>
+            </div>
+            
+            <div class="form-group">
+              <label for="lifestyle">生活习惯</label>
+              <textarea id="lifestyle" name="lifestyle" class="form-control" rows="3" placeholder="请描述您的作息时间、运动频率、工作性质等" required></textarea>
+            </div>
+            
+            <div class="form-group">
+              <label for="diet">饮食习惯</label>
+              <textarea id="diet" name="diet" class="form-control" rows="3" placeholder="请描述您的日常饮食结构、喜好、忌口等" required></textarea>
+            </div>
+            
+            <div class="form-group">
+              <label for="concern">主要健康顾虑 (可选)</label>
+              <textarea id="concern" name="concern" class="form-control" rows="2" placeholder="您目前最关心的健康问题"></textarea>
+            </div>
+            
+            <div class="form-group">
+              <label>过敏源 (可选)</label>
+              <div class="allergens-container">
+                <div class="allergen-tag">
+                  <input type="checkbox" id="allergen1" name="allergens" value="花粉">
+                  <label for="allergen1">花粉</label>
+                </div>
+                <div class="allergen-tag">
+                  <input type="checkbox" id="allergen2" name="allergens" value="海鲜">
+                  <label for="allergen2">海鲜</label>
+                </div>
+                <div class="allergen-tag">
+                  <input type="checkbox" id="allergen3" name="allergens" value="乳制品">
+                  <label for="allergen3">乳制品</label>
+                </div>
+                <div class="allergen-tag">
+                  <input type="checkbox" id="allergen4" name="allergens" value="坚果">
+                  <label for="allergen4">坚果</label>
+                </div>
+                <div class="allergen-tag">
+                  <input type="checkbox" id="allergen5" name="allergens" value="麸质">
+                  <label for="allergen5">麸质</label>
+                </div>
+                <div class="allergen-tag">
+                  <input type="checkbox" id="allergenOther" name="allergens" value="其他">
+                  <label for="allergenOther">其他</label>
+                </div>
+              </div>
+              <input type="text" id="otherAllergens" class="form-control" placeholder="请输入其他过敏源" style="display:none;">
+            </div>
+            
+            <!-- 自定义字段部分 -->
+            <div class="form-group">
+              <label>自定义数据 (可选)</label>
+              <div id="customFields" class="custom-fields-container">
+                <!-- 动态添加的自定义字段将显示在这里 -->
+              </div>
+              <div class="custom-field-actions">
+                <button type="button" id="addCustomFieldBtn" class="btn btn-sm btn-outline-primary">
+                  <svg viewBox="0 0 24 24" width="16" height="16">
+                    <path d="M12 4V20M4 12H20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  </svg>
+                  <span id="addCustomFieldText">添加自定义字段</span>
+                </button>
+              </div>
+            </div>
+            
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary">生成健康报告</button>
+              <button type="reset" class="btn btn-secondary">重置</button>
+            </div>
+          </form>
+        </div>
+        
+        <div class="report-section" id="reportSection" style="display:none;">
+          <div class="report-header">
+            <h2>您的健康报告</h2>
+            <div class="report-actions">
+              <button id="downloadBtn" class="btn btn-success">下载报告</button>
+              <button id="backToFormBtn" class="btn btn-secondary">返回</button>
+            </div>
+          </div>
+          <div class="report-content" id="reportContent">
+            <!-- 报告内容将在这里显示 -->
+          </div>
+        </div>
+      </div>
+      
+      <div class="help-btn" id="helpBtn">
+        <svg viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="24" height="24">
+          <path d="M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64z m0 820c-205.4 0-372-166.6-372-372s166.6-372 372-372 372 166.6 372 372-166.6 372-372 372z" fill="currentColor"></path>
+          <path d="M512 336c-79.5 0-144 64.5-144 144 0 11 9 20 20 20s20-9 20-20c0-57.3 46.7-104 104-104s104 46.7 104 104-46.7 104-104 104c-11 0-20 9-20 20v48c0 11 9 20 20 20s20-9 20-20v-29.5c63.5-15.9 110-73.4 110-142.5 0-79.5-64.5-144-144-144z" fill="currentColor"></path>
+          <path d="M512 720m-32 0a32 32 0 1 0 64 0 32 32 0 1 0-64 0Z" fill="currentColor"></path>
+        </svg>
+      </div>
+
+      <div class="settings-btn" id="settingsBtn">
+        <svg t="1656233912935" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2449" width="24" height="24">
+          <path d="M512 682.666667c-94.257778 0-170.666667-76.408889-170.666667-170.666667S417.742222 341.333333 512 341.333333s170.666667 76.408889 170.666667 170.666667-76.408889 170.666667-170.666667 170.666667z m341.333333-192h-54.044444a298.097778 298.097778 0 0 0-32.995556-79.644445l38.115556-38.115555a42.666667 42.666667 0 0 0 0-60.302223l-60.302222-60.302222a42.666667 42.666667 0 0 0-60.302223 0l-38.115555 38.115556A298.097778 298.097778 0 0 0 565.333333 256.711111V202.666667a42.666667 42.666667 0 0 0-42.666666-42.666667h-85.333334a42.666667 42.666667 0 0 0-42.666666 42.666667v54.044444a298.097778 298.097778 0 0 0-79.644445 32.995556l-38.115555-38.115556a42.666667 42.666667 0 0 0-60.302223 0l-60.302222 60.302222a42.666667 42.666667 0 0 0 0 60.302223l38.115556 38.115555A298.097778 298.097778 0 0 0 170.666667 490.666667H128a42.666667 42.666667 0 0 0-42.666667 42.666666v85.333334a42.666667 42.666667 0 0 0 42.666667 42.666666h42.666667a298.097778 298.097778 0 0 0 32.995555 79.644445l-38.115555 38.115555a42.666667 42.666667 0 0 0 0 60.302223l60.302222 60.302222a42.666667 42.666667 0 0 0 60.302222 0l38.115556-38.115556A298.097778 298.097778 0 0 0 394.666667 767.288889V821.333333a42.666667 42.666667 0 0 0 42.666666 42.666667h85.333334a42.666667 42.666667 0 0 0 42.666666-42.666667v-54.044444a298.097778 298.097778 0 0 0 79.644445-32.995556l38.115555 38.115556a42.666667 42.666667 0 0 0 60.302223 0l60.302222-60.302222a42.666667 42.666667 0 0 0 0-60.302223l-38.115556-38.115555A298.097778 298.097778 0 0 0 853.333333 618.666667H896a42.666667 42.666667 0 0 0 42.666667-42.666667v-85.333333a42.666667 42.666667 0 0 0-85.333334 0z" p-id="2450"></path>
+        </svg>
+      </div>
+    </div>
+    
+    <!-- 设置面板 -->
+    <div class="settings-panel" id="settingsPanel">
+      <div class="settings-header">
+        <h2>设置</h2>
+        <button id="closeSettingsBtn" class="close-btn">&times;</button>
+      </div>
+      
+      <div class="settings-content">
+        <div class="tabs">
+          <div class="tab active" data-tab="history">历史记录</div>
+          <div class="tab" data-tab="theme">主题</div>
+          <div class="tab" data-tab="language">语言</div>
+          <div class="tab" data-tab="api">API 设置</div>
+        </div>
+        
+        <div class="tab-content active" id="historyContent">
+          <div class="history-list" id="historyList">
+            <!-- 历史记录列表将在这里显示 -->
+            <div class="loading">加载中...</div>
+          </div>
+          
+          <!-- 导出选项将在选择历史记录后显示 -->
+          <div class="export-panel" id="exportPanel" style="display:none;">
+            <h3>导出选项</h3>
+            <div class="export-options">
+              <div class="export-option">
+                <input type="radio" id="formatPDF" name="exportFormat" value="pdf" checked>
+                <label for="formatPDF">PDF</label>
+              </div>
+              <div class="export-option">
+                <input type="radio" id="formatDOCX" name="exportFormat" value="docx">
+                <label for="formatDOCX">Word文档(DOCX)</label>
+              </div>
+              <div class="export-option">
+                <input type="radio" id="formatHTML" name="exportFormat" value="html">
+                <label for="formatHTML">HTML</label>
+              </div>
+              <div class="export-option">
+                <input type="radio" id="formatMarkdown" name="exportFormat" value="md">
+                <label for="formatMarkdown">Markdown</label>
+              </div>
+              <div class="export-option">
+                <input type="radio" id="formatText" name="exportFormat" value="txt">
+                <label for="formatText">纯文本(TXT)</label>
+              </div>
+              <div class="export-option">
+                <input type="radio" id="formatJSON" name="exportFormat" value="json">
+                <label for="formatJSON">JSON</label>
+              </div>
+              <div class="export-option">
+                <input type="radio" id="formatCSV" name="exportFormat" value="csv">
+                <label for="formatCSV">CSV表格</label>
+              </div>
+              <div class="export-option">
+                <input type="radio" id="formatXLSX" name="exportFormat" value="xlsx">
+                <label for="formatXLSX">Excel表格(XLSX)</label>
+              </div>
+              <div class="export-option">
+                <input type="radio" id="formatPNG" name="exportFormat" value="png">
+                <label for="formatPNG">PNG图片</label>
+              </div>
+              <div class="export-option">
+                <input type="radio" id="formatJPG" name="exportFormat" value="jpg">
+                <label for="formatJPG">JPG图片</label>
+              </div>
+              <div class="export-option">
+                <input type="radio" id="formatRTF" name="exportFormat" value="rtf">
+                <label for="formatRTF">富文本格式(RTF)</label>
+              </div>
+              <div class="export-option">
+                <input type="radio" id="formatXML" name="exportFormat" value="xml">
+                <label for="formatXML">XML</label>
+              </div>
+              <button id="exportBtn" class="btn btn-primary" onclick="handleExportHistory()">导出所选记录</button>
+            </div>
+          </div>
+          
+          <!-- 记录图按钮和图表容器 -->
+          <div class="health-chart-container">
+            <button id="showHealthChartBtn" class="btn btn-primary">记录图</button>
+            <div id="healthChartWrapper" style="display:none;">
+              <div id="healthChart" class="health-chart"></div>
+              <div class="chart-controls">
+                <select id="chartMetric" class="form-control" style="z-index:10; position:relative; pointer-events:auto;">
+                  <option value="healthScore">健康评分</option>
+                  <option value="weight">体重</option>
+                  <option value="bmi">BMI</option>
+                  <option value="bloodPressure">血压</option>
+                  <option value="heartRate">心率</option>
+                </select>
+                <div class="chart-buttons">
+                  <button id="expandChartBtn" class="btn btn-primary" style="z-index:10; position:relative; pointer-events:auto;">放大</button>
+                  <button id="closeChartBtn" class="btn btn-secondary" style="z-index:10; position:relative; pointer-events:auto;">关闭图表</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="tab-content" id="themeContent">
+          <h3>主题设置</h3>
+          <div class="theme-settings">
+            <div class="form-group">
+              <label>主题选择</label>
+              <div class="theme-options">
+                <div class="theme-option" data-theme="light">
+                  <div class="theme-preview light-theme"></div>
+                  <span>浅色</span>
+                </div>
+                <div class="theme-option" data-theme="dark">
+                  <div class="theme-preview dark-theme"></div>
+                  <span>深色</span>
+                </div>
+                <div class="theme-option" data-theme="gold">
+                  <div class="theme-preview gold-theme"></div>
+                  <span>金色</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label>背景图片</label>
+              <div class="background-options">
+                <div class="bg-option">
+                  <input type="radio" id="bgNone" name="bgType" value="none" checked>
+                  <label for="bgNone">无背景</label>
+                </div>
+                <div class="bg-option">
+                  <input type="radio" id="bgLocal" name="bgType" value="local">
+                  <label for="bgLocal">本地图片</label>
+                </div>
+                <div class="bg-option">
+                  <input type="radio" id="bgUrl" name="bgType" value="url">
+                  <label for="bgUrl">图片URL</label>
+                </div>
+              </div>
+              
+              <div id="bgLocalContainer" class="bg-container" style="display:none;">
+                <div class="file-upload-container">
+                  <label for="bgLocalFile" class="file-upload-btn">选择文件</label>
+                  <input type="file" id="bgLocalFile" accept="image/*" class="form-control">
+                  <button id="clearBgLocal" class="clear-btn" title="清除">×</button>
+                </div>
+              </div>
+              
+              <div id="bgUrlContainer" class="bg-container" style="display:none;">
+                <input type="text" id="bgUrlInput" class="form-control" placeholder="输入图片URL">
+                <button id="applyBgUrl" class="btn btn-primary btn-sm">应用</button>
+              </div>
+              
+              <div id="bgPreview" class="bg-preview" style="display:none;">
+                <img id="bgPreviewImg" src="" alt="背景预览">
+              </div>
+              
+              <div id="bgAdjustments" class="bg-adjustments" style="display:none;">
+                <h4>背景图片调整</h4>
+                
+                <div class="form-group">
+                  <label for="bgOpacity">背景透明度</label>
+                  <div class="opacity-container">
+                    <input type="range" id="bgOpacity" min="10" max="100" value="100" class="opacity-slider">
+                    <span id="bgOpacityValue">100%</span>
+                  </div>
+                </div>
+                
+                <div class="form-group">
+                  <label for="bgBlur">模糊度</label>
+                  <div class="opacity-container">
+                    <input type="range" id="bgBlur" min="0" max="20" value="0" class="opacity-slider">
+                    <span id="bgBlurValue">0px</span>
+                  </div>
+                </div>
+                
+                <div class="form-group">
+                  <label for="bgZIndex">层级显示</label>
+                  <div class="opacity-container">
+                    <input type="range" id="bgZIndex" min="-10" max="10" value="0" class="opacity-slider">
+                    <span id="bgZIndexValue">0</span>
+                  </div>
+                  <div class="opacity-description">负值在内容后方，正值在内容前方</div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="form-group animation-toggle">
+              <label for="animationSwitch">动画效果</label>
+              <div class="switch-container">
+                <input type="checkbox" id="animationSwitch">
+                <span class="switch-description">点击时显示随机颜色的颜文字或表情</span>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="formOpacity">页面透明度</label>
+              <div class="opacity-container">
+                <input type="range" id="formOpacity" min="30" max="100" value="100" class="opacity-slider">
+                <span id="opacityValue">100%</span>
+              </div>
+              <div class="opacity-description">调整"输入您的身体数据"页面背景的透明度</div>
+            </div>
+            
+            <div class="form-group">
+              <label for="fontOpacity">字体透明度</label>
+              <div class="opacity-container">
+                <input type="range" id="fontOpacity" min="50" max="100" value="100" class="opacity-slider">
+                <span id="fontOpacityValue">100%</span>
+              </div>
+              <div class="opacity-description">调整页面文字的透明度</div>
+            </div>
+            
+            <div class="form-actions">
+              <a href="https://afdian.com/a/xieshuoxing" class="support-author-btn" title="前往支持作者，若有问题或建议请反馈3433725831@qq.com" id="supportAuthorBtn">
+                <img src="14.png" alt="支持作者" class="support-icon">
+              </a>
+              <button id="saveThemeSettings" class="btn btn-primary">保存主题设置</button>
+              <button id="resetThemeSettings" class="btn btn-secondary">重置</button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="tab-content" id="languageContent">
+          <h3>语言设置</h3>
+          <div class="language-settings">
+            <div class="form-group">
+              <label>选择语言</label>
+              <div class="language-options">
+                <div class="language-option" data-lang="zh-CN">
+                  <div class="language-flag zh-flag"></div>
+                  <span>简体中文</span>
+                </div>
+                <div class="language-option" data-lang="en-GB">
+                  <div class="language-flag gb-flag"></div>
+                  <span>English (UK)</span>
+                </div>
+                <div class="language-option" data-lang="en-US">
+                  <div class="language-flag us-flag"></div>
+                  <span>English (US)</span>
+                </div>
+                <div class="language-option" data-lang="de-DE">
+                  <div class="language-flag de-flag"></div>
+                  <span>Deutsch</span>
+                </div>
+                <div class="language-option" data-lang="fr-FR">
+                  <div class="language-flag fr-flag"></div>
+                  <span>Français</span>
+                </div>
+                <div class="language-option" data-lang="es-ES">
+                  <div class="language-flag es-flag"></div>
+                  <span>Español</span>
+                </div>
+                <div class="language-option" data-lang="pt-BR">
+                  <div class="language-flag pt-flag"></div>
+                  <span>Português</span>
+                </div>
+                <div class="language-option" data-lang="hi-IN">
+                  <div class="language-flag hi-flag"></div>
+                  <span>हिन्दी</span>
+                </div>
+                <div class="language-option" data-lang="ur-PK">
+                  <div class="language-flag ur-flag"></div>
+                  <span>اردو</span>
+                </div>
+                <div class="language-option" data-lang="ar-EG">
+                  <div class="language-flag ar-flag"></div>
+                  <span>العربية</span>
+                </div>
+                <div class="language-option" data-lang="ru-RU">
+                  <div class="language-flag ru-flag"></div>
+                  <span>Русский</span>
+                </div>
+                <div class="language-option" data-lang="ja-JP">
+                  <div class="language-flag jp-flag"></div>
+                  <span>日本語</span>
+                </div>
+                <div class="language-option" data-lang="ko-KR">
+                  <div class="language-flag kr-flag"></div>
+                  <span>한국어</span>
+                </div>
+                <div class="language-option" data-lang="zh-classical">
+                  <div class="language-flag zh-classical-flag"></div>
+                  <span>文言文</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="language-info">
+              <p id="languageInfoText">切换语言将改变界面文本、度量单位和健康标准。</p>
+              <ul>
+                <li>中文：使用公制单位 (cm, kg)</li>
+                <li>英式英语：使用公制单位 (cm, kg)</li>
+                <li>美式英语：使用英制单位 (in, lb)</li>
+                <li>德语：使用公制单位 (cm, kg)</li>
+                <li>法语：使用公制单位 (cm, kg)</li>
+                <li>西班牙语：使用公制单位 (cm, kg)</li>
+                <li>阿拉伯语：使用公制单位 (سم, كجم)</li>
+                <li>俄语：使用公制单位 (см, кг)</li>
+                <li>日语：使用公制单位 (cm, kg)</li>
+                <li>韩语：使用公制单位 (cm, kg)</li>
+                <li>文言文：使用古代计量单位 (尺寸, 斤两)</li>
+              </ul>
+            </div>
+            
+            <div class="form-actions">
+              <button id="saveLanguageSettings" class="btn btn-primary">保存语言设置</button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="tab-content" id="apiContent">
+          <h3>API 设置</h3>
+          <div class="api-settings">
+            <div class="api-usage-info">
+              <div class="api-usage-notice">
+                <i class="notice-icon">ℹ️</i>
+                <div class="notice-content">
+                  <p>内置API一天最多生成报告10次，用户自己设置API后则无上限。</p>
+                  <p id="apiRemainingCount">今日剩余次数：加载中...</p>
+                </div>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="apiProvider">API 提供商</label>
+              <select id="apiProvider" class="form-control">
+                <option value="default">使用默认 API</option>
+                <option value="custom">自定义 API</option>
+              </select>
+            </div>
+            
+            <div id="customApiSettings" style="display:none;">
+              <div class="form-group">
+                <label for="apiEndpoint">API 端点</label>
+                <input type="text" id="apiEndpoint" class="form-control" placeholder="https://api.example.com/v1/chat/completions">
+              </div>
+              
+              <div class="form-group">
+                <label for="apiKey">API 密钥</label>
+                <input type="password" id="apiKey" class="form-control" placeholder="sk-...">
+              </div>
+              
+              <div class="form-group">
+                <label for="apiModel">模型名称</label>
+                <input type="text" id="apiModel" class="form-control" placeholder="gpt-4-turbo">
+              </div>
+              
+              <div class="form-group">
+                <label for="apiHeaders">额外请求头 (JSON 格式，可选)</label>
+                <textarea id="apiHeaders" class="form-control" rows="3" placeholder='{"Authorization": "Bearer YOUR_TOKEN"}'></textarea>
+              </div>
+            </div>
+            
+            <div class="form-actions">
+              <button id="saveApiSettings" class="btn btn-primary">保存 API 设置</button>
+              <button id="resetApiSettings" class="btn btn-secondary">重置</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 设置面板遮罩层 -->
+    <div class="settings-overlay" id="settingsOverlay"></div>
+
+    <!-- 添加单位换算对话框 -->
+    <div class="unit-converter-dialog" id="unitConverterDialog">
+      <div class="converter-header">
+        <h2>单位换算器</h2>
+        <button id="closeConverterBtn" class="close-btn">&times;</button>
+      </div>
+      <div class="converter-content">
+        <div class="converter-form">
+          <div class="form-group">
+            <label for="unitType">单位类型</label>
+            <select id="unitType" class="form-control">
+              <option value="length">长度</option>
+              <option value="weight">重量</option>
+              <option value="temperature">温度</option>
+              <option value="area">面积</option>
+              <option value="volume">体积</option>
+            </select>
+          </div>
+          <div class="converter-input-group">
+            <div class="form-group">
+              <label for="fromValue">数值</label>
+              <input type="number" id="fromValue" class="form-control" placeholder="输入数值">
+            </div>
+            <div class="form-group">
+              <label for="fromUnit">从</label>
+              <select id="fromUnit" class="form-control"></select>
+            </div>
+          </div>
+          <div class="converter-input-group">
+            <div class="form-group">
+              <label for="toUnit">到</label>
+              <select id="toUnit" class="form-control"></select>
+            </div>
+          </div>
+          <button id="convertBtn" class="btn btn-primary">计算</button>
+          <div class="language-selector">
+            <label for="converterLanguage">语言</label>
+            <select id="converterLanguage" class="form-control">
+              <option value="zh-CN">中文</option>
+              <option value="en-US">English</option>
+            </select>
+          </div>
+          <div class="conversion-result" id="conversionResult" style="display:none;">
+            <div class="result-value" id="resultValue"></div>
+            <div class="result-formula" id="resultFormula"></div>
+          </div>
+        </div>
+        <!-- 单位换算帮助信息 -->
+        <div class="converter-help">
+          <h3>使用帮助</h3>
+          <h4>支持的单位换算</h4>
+          <ul>
+            <li>长度：米、厘米、毫米、公里、英寸、英尺、码、英里等</li>
+            <li>重量：千克、克、毫克、磅、盎司、吨等</li>
+            <li>温度：摄氏度、华氏度、开尔文等</li>
+            <li>面积：平方米、平方厘米、平方公里、平方英寸、平方英尺、英亩等</li>
+            <li>体积：立方米、升、毫升、加仑、立方英寸、立方英尺等</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 单位换算器遮罩层 -->
+    <div class="converter-overlay" id="converterOverlay"></div>
+    
+    <!-- 全屏图表容器 -->
+    <div id="fullscreenChartContainer">
+      <div id="fullscreenChart" class="fullscreen-chart"></div>
+      <div class="fullscreen-controls">
+        <select id="fullscreenChartMetric" class="form-control" style="z-index:1005; position:relative; pointer-events:auto;">
+          <option value="healthScore">健康评分</option>
+          <option value="weight">体重</option>
+          <option value="bmi">BMI</option>
+          <option value="bloodPressure">血压</option>
+          <option value="heartRate">心率</option>
+        </select>
+        <button id="showAllDataBtn" class="btn btn-primary" style="z-index:1005; position:relative; pointer-events:auto;">全部展示</button>
+        <button id="closeFullscreenBtn" class="btn btn-secondary" style="z-index:1005; position:relative; pointer-events:auto;">关闭</button>
+      </div>
+    </div>
+    
+    <!-- 图表选择对话框 -->
+    <div class="chart-selection-dialog" id="chartSelectionDialog" style="display:none;">
+      <div class="dialog-header">
+        <h3>下载选项</h3>
+        <button id="closeChartDialogBtn" class="close-btn">&times;</button>
+      </div>
+      <div class="dialog-content">
+        <p>是否需要在报告中包含折线图？</p>
+        <div class="chart-options">
+          <div class="chart-option">
+            <input type="radio" id="noChart" name="chartOption" value="none" checked>
+            <label for="noChart">不包含折线图</label>
+          </div>
+          <div class="chart-option">
+            <input type="radio" id="chart3days" name="chartOption" value="3">
+            <label for="chart3days">包含最近3天</label>
+          </div>
+          <div class="chart-option">
+            <input type="radio" id="chart7days" name="chartOption" value="7">
+            <label for="chart7days">包含最近7天</label>
+          </div>
+          <div class="chart-option">
+            <input type="radio" id="chart30days" name="chartOption" value="30">
+            <label for="chart30days">包含最近30天</label>
+          </div>
+          <div class="chart-option">
+            <input type="radio" id="chart60days" name="chartOption" value="60">
+            <label for="chart60days">包含最近60天</label>
+          </div>
+        </div>
+        <p class="format-notice">注意：纯文本(TXT)、CSV、XML和JSON格式不支持包含折线图，其他格式如PDF、DOCX和HTML等都支持。</p>
+      </div>
+      <div class="dialog-footer">
+        <button id="chartContinueBtn" class="btn btn-primary">继续</button>
+        <button id="chartCancelBtn" class="btn btn-secondary">取消</button>
+      </div>
+    </div>
+    
+    <!-- 图表选择对话框遮罩层 -->
+    <div class="chart-dialog-overlay" id="chartDialogOverlay" style="display:none;"></div>
+  </div>
+  
+  <script src="renderer.js"></script>
+  
+  <!-- 自定义脚本 -->
+  <script src="escape_xml.js"></script>
+  <script src="save_report.js"></script>
+  <script src="report_download_extension.js"></script>
+  <script src="app-drag-region.js"></script>
+  <script src="loading_animation.js"></script>
+  
+  <!-- 导入扩展功能 -->
+  <script src="escape_xml.js"></script>
+  <script src="save_report.js"></script>
+  <script src="report_download_extension.js"></script>
+  <script src="app-drag-region.js"></script>
+  
+  <!-- 额外的按钮事件处理，确保点击功能正常工作 -->
+  <script>
+    // 页面完全加载后添加额外的事件处理
+    window.addEventListener('load', function() {
+      // 强制处理按钮事件，绕过Canvas事件捕获
+      setTimeout(function() {
+        console.log('添加额外按钮事件处理...');
+        
+        // 关闭图表按钮
+        var closeChartBtn = document.getElementById('closeChartBtn');
+        if (closeChartBtn) {
+          closeChartBtn.onclick = function(e) {
+            console.log('内联脚本: 关闭图表按钮被点击');
+            e.stopPropagation();
+            if (typeof closeHealthChart === 'function') {
+              closeHealthChart();
+            }
+            return false;
+          };
+        }
+        
+        // 放大按钮
+        var expandChartBtn = document.getElementById('expandChartBtn');
+        if (expandChartBtn) {
+          expandChartBtn.onclick = function(e) {
+            console.log('内联脚本: 放大图表按钮被点击');
+            e.stopPropagation();
+            if (typeof showFullscreenChart === 'function') {
+              showFullscreenChart();
+            }
+            return false;
+          };
+        }
+        
+        // 关闭全屏按钮
+        var closeFullscreenBtn = document.getElementById('closeFullscreenBtn');
+        if (closeFullscreenBtn) {
+          closeFullscreenBtn.onclick = function(e) {
+            console.log('内联脚本: 关闭全屏按钮被点击');
+            e.stopPropagation();
+            if (typeof closeFullscreenChart === 'function') {
+              closeFullscreenChart();
+            }
+            return false;
+          };
+        }
+        
+        // 全部展示按钮
+        var showAllDataBtn = document.getElementById('showAllDataBtn');
+        if (showAllDataBtn) {
+          showAllDataBtn.onclick = null; // 先清除可能的事件
+          showAllDataBtn.addEventListener('click', function(e) {
+            console.log('内联脚本: 全部展示按钮被点击');
+            e.stopPropagation();
+            if (typeof toggleAllMetricsMode === 'function') {
+              toggleAllMetricsMode();
+            }
+            return false;
+          }, true);
+        }
+      }, 1000);
+    });
+  </script>
+
+  <!-- 椭圆拖拽区域初始化脚本 -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('初始化椭圆拖拽区域事件处理');
+      
+      // 获取拖拽区域元素
+      const dragHandle = document.getElementById('ellipse-drag-handle');
+      
+      if (dragHandle) {
+        // 鼠标悬停效果
+        dragHandle.addEventListener('mouseover', function() {
+          this.style.backgroundColor = 'rgba(60, 60, 60, 0.9)';
+          this.style.width = '160px';
+          this.style.height = '12px';
+          this.style.boxShadow = '0 3px 6px rgba(0, 0, 0, 0.4)';
+        });
+        
+        // 鼠标离开效果
+        dragHandle.addEventListener('mouseout', function() {
+          this.style.backgroundColor = 'rgba(80, 80, 80, 0.8)';
+          this.style.width = '120px';
+          this.style.height = '10px';
+          this.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.3)';
+        });
+        
+        let isDragging = false;
+        
+        // 鼠标按下效果
+        dragHandle.addEventListener('mousedown', function(e) {
+          console.log('椭圆拖拽区域被点击，开始拖拽');
+          this.style.cursor = 'grabbing';
+          this.style.backgroundColor = 'rgba(40, 40, 40, 1)';
+          
+          // 标记开始拖拽
+          isDragging = true;
+          
+          // 通知主进程开始拖拽
+          if (window.electronAPI) {
+            window.electronAPI.startDrag();
+          } else {
+            console.error('electronAPI不可用');
+          }
+          
+          e.preventDefault();
+          e.stopPropagation();
+        });
+        
+        // 全局鼠标移动事件
+        document.addEventListener('mousemove', function(e) {
+          if (!isDragging) return;
+          
+          // 拖拽过程中不断发送位置更新
+          if (window.electronAPI) {
+            window.electronAPI.dragWindow();
+          }
+        });
+        
+        // 全局鼠标释放事件
+        document.addEventListener('mouseup', function() {
+          if (!isDragging) return;
+          
+          // 结束拖拽
+          isDragging = false;
+          
+          // 恢复椭圆样式
+          dragHandle.style.backgroundColor = 'rgba(80, 80, 80, 0.8)';
+          dragHandle.style.cursor = 'grab';
+          
+          // 通知主进程拖拽结束
+          if (window.electronAPI) {
+            window.electronAPI.endDrag();
+          }
+          
+          console.log('拖拽结束');
+        });
+        
+        console.log('椭圆拖拽区域事件处理程序已初始化完成');
+      } else {
+        console.error('未找到椭圆拖拽区域元素');
+      }
+    });
+  </script>
+</body>
+</html> 
